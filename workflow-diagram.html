@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinhomes Agent Accountability | Workflow Diagram</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #647084;
+      --line: #d9e0e8;
+      --paper: #f6f8fb;
+      --white: #ffffff;
+      --navy: #17324d;
+      --teal: #087f8c;
+      --teal-soft: #e5f5f5;
+      --amber: #b96800;
+      --amber-soft: #fff2dd;
+      --red: #b83b3b;
+      --red-soft: #fff0ef;
+      --green: #197447;
+      --green-soft: #e8f6ed;
+      --shadow: 0 14px 35px rgba(23, 32, 51, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(8, 127, 140, 0.07), transparent 32%),
+        var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .shell {
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 56px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--teal);
+      font: 700 0.76rem/1.2 Arial, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 880px;
+      margin-bottom: 12px;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 28px;
+    }
+
+    .intro-copy {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.55;
+    }
+
+    .scope {
+      min-width: 220px;
+      padding: 15px 17px;
+      border-left: 4px solid var(--teal);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      font: 700 0.82rem/1.5 Arial, sans-serif;
+    }
+
+    .scope span {
+      display: block;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 18px;
+      padding: 6px;
+      width: fit-content;
+      border: 1px solid var(--line);
+      background: var(--white);
+      border-radius: 8px;
+    }
+
+    .controls button {
+      border: 0;
+      border-radius: 5px;
+      padding: 10px 14px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font: 700 0.8rem Arial, sans-serif;
+    }
+
+    .controls button:hover,
+    .controls button[aria-selected="true"] {
+      color: var(--white);
+      background: var(--navy);
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .workflow-panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .workflow-panel.is-hidden { display: none; }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 22px 22px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      margin-bottom: 5px;
+      font-size: 1.4rem;
+    }
+
+    .panel-header p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font: 0.78rem/1.45 Arial, sans-serif;
+    }
+
+    .state-tag {
+      flex: 0 0 auto;
+      align-self: flex-start;
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: var(--navy);
+      background: #e8eef4;
+      font: 700 0.68rem Arial, sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .future .state-tag { color: var(--green); background: var(--green-soft); }
+
+    .flow {
+      display: grid;
+      gap: 0;
+      padding: 22px;
+    }
+
+    .step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 13px;
+      min-height: 92px;
+    }
+
+    .step:not(:last-child)::after {
+      position: absolute;
+      top: 39px;
+      left: 16px;
+      width: 2px;
+      height: calc(100% - 26px);
+      background: var(--line);
+      content: "";
+    }
+
+    .step-number {
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 2px solid var(--navy);
+      border-radius: 50%;
+      color: var(--navy);
+      background: var(--white);
+      font: 700 0.8rem Arial, sans-serif;
+    }
+
+    .step-card {
+      position: relative;
+      margin-bottom: 13px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+
+    .step-card h3 {
+      margin-bottom: 5px;
+      font-size: 1rem;
+    }
+
+    .step-card p {
+      margin-bottom: 6px;
+      color: var(--muted);
+      font: 0.79rem/1.45 Arial, sans-serif;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--navy);
+      font: 700 0.68rem Arial, sans-serif;
+    }
+
+    .meta span {
+      padding: 4px 6px;
+      border-radius: 3px;
+      background: #edf2f6;
+    }
+
+    .critical .step-number,
+    .critical .step-card { border-color: var(--red); }
+
+    .critical .step-number { color: var(--red); background: var(--red-soft); }
+    .critical .step-card { background: var(--red-soft); }
+
+    .automated .step-number,
+    .automated .step-card { border-color: var(--teal); }
+
+    .automated .step-number { color: var(--teal); background: var(--teal-soft); }
+    .automated .step-card { background: var(--teal-soft); }
+
+    .human .step-number,
+    .human .step-card { border-color: var(--green); }
+
+    .human .step-number { color: var(--green); background: var(--green-soft); }
+    .human .step-card { background: var(--green-soft); }
+
+    .fallback {
+      margin: 0 22px 22px;
+      padding: 13px 15px;
+      border-left: 4px solid var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .fallback strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--amber);
+      font: 700 0.73rem Arial, sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .fallback p {
+      margin-bottom: 0;
+      color: #684617;
+      font: 0.78rem/1.45 Arial, sans-serif;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .summary-card {
+      padding: 18px;
+      border-top: 3px solid var(--teal);
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--navy);
+      font-size: 1.45rem;
+    }
+
+    .summary-card span {
+      color: var(--muted);
+      font: 0.75rem/1.4 Arial, sans-serif;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+      color: var(--muted);
+      font: 0.75rem Arial, sans-serif;
+    }
+
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .legend-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--navy); }
+    .legend-dot.red { background: var(--red); }
+    .legend-dot.teal { background: var(--teal); }
+    .legend-dot.green { background: var(--green); }
+    .legend-dot.amber { background: var(--amber); }
+
+    .footnote {
+      margin-top: 22px;
+      color: var(--muted);
+      font: 0.72rem/1.5 Arial, sans-serif;
+    }
+
+    @media (max-width: 900px) {
+      .intro { display: block; }
+      .scope { margin-top: 18px; width: fit-content; }
+      .workflow-grid { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 24px, 1440px); padding-top: 28px; }
+      .panel-header { display: block; }
+      .state-tag { display: inline-block; margin-top: 12px; }
+      .flow { padding: 16px; }
+      .fallback { margin: 0 16px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="intro">
+      <div>
+        <p class="eyebrow">Vin Smart Future · Vinhomes</p>
+        <h1>Agent Accountability<br>Workflow</h1>
+        <p class="intro-copy">
+          Problem #3: Khi agent lỗi, đội vận hành không thể tái dựng đầy đủ ai đã hành động,
+          dữ liệu nào đã được đọc và người nào phê duyệt kết quả cuối cùng.
+        </p>
+      </div>
+      <aside class="scope">
+        Phase 3 · Deep Dive
+        <span>Auditability cho agentic workflow</span>
+      </aside>
+    </header>
+
+    <nav class="controls" role="tablist" aria-label="Chọn luồng workflow">
+      <button type="button" role="tab" aria-selected="true" data-view="all">Cả hai luồng</button>
+      <button type="button" role="tab" aria-selected="false" data-view="current">Current State</button>
+      <button type="button" role="tab" aria-selected="false" data-view="future">Future State</button>
+    </nav>
+
+    <section class="workflow-grid" aria-label="So sánh workflow">
+      <article class="workflow-panel current" data-panel="current">
+        <header class="panel-header">
+          <div>
+            <h2>Current State</h2>
+            <p>Log rời rạc, điều tra thủ công, khó xác định root cause.</p>
+          </div>
+          <span class="state-tag">2–4 giờ / sự cố</span>
+        </header>
+        <div class="flow">
+          <div class="step">
+            <div class="step-number">01</div>
+            <div class="step-card">
+              <h3>Tiếp nhận yêu cầu</h3>
+              <p>CSKH hoặc hệ thống tiếp nhận phản ánh, khiếu nại và tạo request ID.</p>
+              <div class="meta"><span>CSKH / hệ thống</span><span>1–3 phút</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">02</div>
+            <div class="step-card">
+              <h3>Agent phân tích</h3>
+              <p>Agent cư dân đọc yêu cầu, lập kế hoạch và có thể ghi log không đồng nhất.</p>
+              <div class="meta"><span>Agent</span><span>10–30 giây</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">03</div>
+            <div class="step-card">
+              <h3>Agent gọi tool nghiệp vụ</h3>
+              <p>Service agent gọi tool, nhưng input, policy decision và quyền gọi có thể không được lưu đủ.</p>
+              <div class="meta"><span>Agent / tool</span><span>10–60 giây</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">04</div>
+            <div class="step-card">
+              <h3>Người duyệt xem và sửa</h3>
+              <p>Điều phối viên xem output, chỉnh sửa nếu cần rồi phê duyệt kết quả.</p>
+              <div class="meta"><span>Human review</span><span>2–10 phút</span></div>
+            </div>
+          </div>
+          <div class="step critical">
+            <div class="step-number">05</div>
+            <div class="step-card">
+              <h3>Thu thập log thủ công</h3>
+              <p>QA hoặc pháp chế mở nhiều hệ thống, đối chiếu timestamp và hỏi lại người xử lý.</p>
+              <div class="meta"><span>🔴 Bottleneck</span><span>1–3 giờ</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">06</div>
+            <div class="step-card">
+              <h3>Lập biên bản và khắc phục</h3>
+              <p>Đội vận hành lập timeline, phản hồi khiếu nại và đề xuất biện pháp khắc phục.</p>
+              <div class="meta"><span>QA / pháp chế</span><span>30–60 phút</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="workflow-panel future" data-panel="future">
+        <header class="panel-header">
+          <div>
+            <h2>Future State</h2>
+            <p>Event schema thống nhất, audit agent chỉ đọc, người có thẩm quyền phê duyệt.</p>
+          </div>
+          <span class="state-tag">Mục tiêu &lt;20 phút</span>
+        </header>
+        <div class="flow">
+          <div class="step automated">
+            <div class="step-number">01</div>
+            <div class="step-card">
+              <h3>Agent hoặc người tạo hành động</h3>
+              <p>Mọi hành động bắt đầu với correlation ID và actor identity duy nhất.</p>
+              <div class="meta"><span>Agent / human</span><span>Event bắt buộc</span></div>
+            </div>
+          </div>
+          <div class="step automated">
+            <div class="step-number">02</div>
+            <div class="step-card">
+              <h3>Audit pipeline ghi event</h3>
+              <p>Chuẩn hóa event schema, parent event, timestamp, input/output hash và phiên bản model.</p>
+              <div class="meta"><span>🔵 Tự động</span><span>Append-only</span></div>
+            </div>
+          </div>
+          <div class="step automated">
+            <div class="step-number">03</div>
+            <div class="step-card">
+              <h3>Policy + RBAC kiểm tra quyền</h3>
+              <p>Kiểm tra mục đích truy vấn, phạm vi dữ liệu và policy decision trước khi cho phép đọc.</p>
+              <div class="meta"><span>🔵 Tự động</span><span>Allow / deny</span></div>
+            </div>
+          </div>
+          <div class="step automated">
+            <div class="step-number">04</div>
+            <div class="step-card">
+              <h3>Read-only audit agent</h3>
+              <p>Ghép event theo correlation ID, tạo timeline và trích dẫn event cho từng nhận định.</p>
+              <div class="meta"><span>🔵 Không side effect</span><span>Evidence-linked</span></div>
+            </div>
+          </div>
+          <div class="step human">
+            <div class="step-number">05</div>
+            <div class="step-card">
+              <h3>Người phụ trách review</h3>
+              <p>Xác nhận timeline, xem các evidence gap và quyết định có mở incident hay không.</p>
+              <div class="meta"><span>🟢 Human review</span><span>QA / trưởng ca</span></div>
+            </div>
+          </div>
+          <div class="step human">
+            <div class="step-number">06</div>
+            <div class="step-card">
+              <h3>QA / pháp chế phê duyệt</h3>
+              <p>Phê duyệt báo cáo cuối; không dùng tóm tắt LLM làm kết luận trách nhiệm tự động.</p>
+              <div class="meta"><span>🟢 HITL bắt buộc</span><span>Final decision</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fallback">
+          <strong>Fallback · Incomplete evidence</strong>
+          <p>Nếu thiếu correlation ID, log lỗi schema hoặc quyền truy cập không rõ, không suy đoán timeline. Chuyển case cho QA thu thập thủ công.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="summary" aria-label="Mục tiêu đo lường">
+      <div class="summary-card"><strong>&lt; 20 phút</strong><span>Thời gian mục tiêu để tái dựng một sự cố.</span></div>
+      <div class="summary-card"><strong>100%</strong><span>Tool call có correlation ID, actor, timestamp và policy decision.</span></div>
+      <div class="summary-card"><strong>90%</strong><span>Case audit xác định được root cause hoặc evidence gap.</span></div>
+    </section>
+
+    <div class="legend" aria-label="Chú giải">
+      <span class="legend-item"><i class="legend-dot red"></i> Bottleneck / rủi ro</span>
+      <span class="legend-item"><i class="legend-dot teal"></i> Tự động hóa có kiểm soát</span>
+      <span class="legend-item"><i class="legend-dot green"></i> Human-in-the-loop</span>
+      <span class="legend-item"><i class="legend-dot amber"></i> Fallback</span>
+    </div>
+
+    <p class="footnote">Các con số là giả định scoping từ deep-dive report, cần xác thực bằng audit log, ticket system và phỏng vấn đội vận hành Vinhomes.</p>
+  </main>
+
+  <script>
+    const buttons = document.querySelectorAll('[data-view]');
+    const panels = document.querySelectorAll('[data-panel]');
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const view = button.dataset.view;
+        buttons.forEach((item) => item.setAttribute('aria-selected', item === button ? 'true' : 'false'));
+        panels.forEach((panel) => {
+          panel.classList.toggle('is-hidden', view !== 'all' && panel.dataset.panel !== view);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
