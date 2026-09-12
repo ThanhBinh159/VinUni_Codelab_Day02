@@ -116,7 +116,7 @@ def evaluate_prompt(user_input: str) -> str:
 
 Run: `python -m pytest tests/test_prompt_prototype.py -q`
 
-Expected: `5 passed` and exit code 0.
+Expected: `6 passed` and exit code 0, including the Windows legacy-console regression test.
 
 - [ ] **Step 5: Verify command-line offline execution**
 
@@ -268,7 +268,7 @@ git commit -m "feat: add current-state workflow diagram"
 
 Run: `python -m pytest -q`
 
-Expected: `6 passed` and exit code 0.
+Expected: `7 passed` and exit code 0.
 
 - [ ] **Step 2: Run every focused autograder code check**
 
