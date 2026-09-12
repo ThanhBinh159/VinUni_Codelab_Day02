@@ -2,7 +2,7 @@
 
 | Thông tin | Giá trị |
 |---|---|
-| Cá nhân | Kien |
+| Cá nhân | Pham Van Kien |
 | Email | kp23012004@gmail.com |
 | Branch | `pvksssss` |
 | Đề tài | Xanh SM - hỗ trợ điều phối sự cố pin thấp ngoài hiện trường |

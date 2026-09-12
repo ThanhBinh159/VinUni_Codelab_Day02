@@ -2,7 +2,7 @@
 
 | Thông tin | Giá trị |
 |---|---|
-| Cá nhân | Kien |
+| Cá nhân | Pham Van Kien |
 | Email | kp23012004@gmail.com |
 | Branch | `pvksssss` |
 | Công cụ AI | Codex / ChatGPT làm thought-partner; Gemini 2.5 Flash là model mục tiêu của prototype |

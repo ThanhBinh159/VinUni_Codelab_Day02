@@ -2,7 +2,7 @@
 
 | Thông tin | Giá trị |
 |---|---|
-| Cá nhân | Kien |
+| Cá nhân | Pham Van Kien |
 | Email | kp23012004@gmail.com |
 | Branch | `pvksssss` |
 | Bối cảnh | AI Product Engineer - Vin Smart Future |
