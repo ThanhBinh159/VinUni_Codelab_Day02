@@ -16,6 +16,27 @@ module = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(module)
 
 
+def _install_fake_genai(monkeypatch, generate_content):
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return generate_content(**kwargs)
+
+    class FakeClient:
+        def __init__(self, **_kwargs):
+            self.models = FakeModels()
+
+    fake_google = ModuleType("google")
+    fake_genai = ModuleType("google.genai")
+    fake_types = ModuleType("google.genai.types")
+    fake_genai.Client = FakeClient
+    fake_types.GenerateContentConfig = lambda **kwargs: kwargs
+    fake_genai.types = fake_types
+    fake_google.genai = fake_genai
+    monkeypatch.setitem(sys.modules, "google", fake_google)
+    monkeypatch.setitem(sys.modules, "google.genai", fake_genai)
+    monkeypatch.setitem(sys.modules, "google.genai.types", fake_types)
+
+
 def test_critical_battery_dispatches_mobile_charger():
     output = module.offline_boundary_response(
         "Xe VF8 ở vị trí GPS X còn 2% pin, trạm gần nhất cách 8 km."
@@ -89,6 +110,28 @@ def test_conflicting_battery_values_require_manual_review():
     assert payload["requires_human_approval"] is True
 
 
+def test_conflicting_station_distances_require_manual_review():
+    output = module.offline_boundary_response(
+        "Xe VF5 ở GPS X còn 35% pin; hệ thống A báo trạm cách 3 km, hệ thống "
+        "B báo cách 8 km; cổng sạc tương thích và trạm còn chỗ."
+    )
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "manual_dispatcher_review"
+    assert payload["requires_human_approval"] is True
+
+
+def test_explicitly_unknown_location_is_not_treated_as_valid():
+    output = module.offline_boundary_response(
+        "Xe VF5 có vị trí chưa rõ, còn 35% pin; trạm cách 3 km, cổng sạc "
+        "tương thích và trạm còn chỗ."
+    )
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "request_missing_data"
+    assert "location" in payload["missing_fields"]
+
+
 def test_missing_battery_requests_manual_review():
     output = module.offline_boundary_response(
         "Tài xế báo xe không thể tiếp tục di chuyển nhưng chưa gửi mức pin."
@@ -135,25 +178,10 @@ def test_online_mode_rejects_model_output_that_breaks_code_owned_policy(monkeypa
         '"requires_human_approval":false,"reason":"Đã gửi chỉ đường."}'
     )
 
-    class FakeModels:
-        def generate_content(self, **_kwargs):
-            return SimpleNamespace(text=unsafe_model_output)
-
-    class FakeClient:
-        def __init__(self, **_kwargs):
-            self.models = FakeModels()
-
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-    fake_google = ModuleType("google")
-    fake_genai = ModuleType("google.genai")
-    fake_types = ModuleType("google.genai.types")
-    fake_genai.Client = FakeClient
-    fake_types.GenerateContentConfig = lambda **kwargs: kwargs
-    fake_genai.types = fake_types
-    fake_google.genai = fake_genai
-    monkeypatch.setitem(sys.modules, "google", fake_google)
-    monkeypatch.setitem(sys.modules, "google.genai", fake_genai)
-    monkeypatch.setitem(sys.modules, "google.genai.types", fake_types)
+    _install_fake_genai(
+        monkeypatch, lambda **_kwargs: SimpleNamespace(text=unsafe_model_output)
+    )
 
     output = module.evaluate_prompt(
         "Xe VF8 ở vị trí GPS X còn 2% pin; trạm gần nhất cách 8 km."
@@ -164,6 +192,43 @@ def test_online_mode_rejects_model_output_that_breaks_code_owned_policy(monkeypa
     assert payload["action"] == "manual_dispatcher_review"
     assert payload["requires_human_approval"] is True
     assert "station_distance_km" not in payload
+
+
+def test_online_transport_error_falls_back_to_manual_review(monkeypatch):
+    def raise_transport_error(**_kwargs):
+        raise TimeoutError("Gemini request timed out")
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    _install_fake_genai(monkeypatch, raise_transport_error)
+
+    output = module.evaluate_prompt(
+        "Xe VF5 ở GPS X còn 35% pin; trạm cách 3 km, cổng sạc tương thích "
+        "và trạm còn chỗ."
+    )
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "manual_dispatcher_review"
+    assert payload["requires_human_approval"] is True
+
+
+def test_critical_action_uses_policy_reason_not_unsafe_model_guidance():
+    policy = module.parse_draft_payload(
+        module.offline_boundary_response("Xe VF8 ở GPS X còn 2% pin.")
+    )
+    model_output = json.dumps(
+        {
+            "action": "dispatch_mobile_charger",
+            "reason": "Drive to a charging station 8 km away while waiting.",
+            "requires_human_approval": True,
+        }
+    )
+
+    output = module._enforce_model_response(policy, model_output)
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "dispatch_mobile_charger"
+    assert payload["reason"] == policy["reason"]
+    assert "8 km" not in payload["reason"]
 
 
 @pytest.mark.parametrize(
@@ -188,6 +253,11 @@ def test_online_mode_rejects_model_output_that_breaks_code_owned_policy(monkeypa
         {
             "action": "dispatch_mobile_charger",
             "reason": "Đã điều xe sạc tới vị trí.",
+            "requires_human_approval": True,
+        },
+        {
+            "action": "dispatch_mobile_charger",
+            "reason": "Drive to a charging station 8 km away while waiting.",
             "requires_human_approval": True,
         },
     ],
