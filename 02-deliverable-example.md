@@ -1,3 +1,7 @@
+Họ và Tên: Nguyễn Thanh Bình
+Mã học viên: 2A202602777
+Level 3
+
 # Deliverable Example — Vin Smart Future (GSM / Xanh SM Use Case)
 
 > **Ví dụ bài nộp hoàn chỉnh từ đầu đến cuối lab, đã được định vị lại theo Rubric mới và bối cảnh vận hành của Vin Smart Future.**
