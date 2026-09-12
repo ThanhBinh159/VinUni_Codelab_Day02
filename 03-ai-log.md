@@ -1,7 +1,7 @@
 # 03-AI-Log — Nhật ký Tương tác AI & Phản ánh Cá nhân
 
 > **Họ và tên:** Nguyễn Thị Minh Tiến
- **Mã sinh viên:** 2A202602997
+> **Mã sinh viên:** 2A202602997
 > **Ngày hoàn thành:** 12/9/2026
 > **AI Tool sử dụng:** Google Gemini, Claude
 
@@ -208,10 +208,3 @@ Trước buổi Lab, tôi nghĩ adversarial testing là "thừa thãi". Sau khi 
 3. **Viết prompt defensive** — giả sử AI sẽ hiểu sai
 4. **Dùng AI như rubber duck** — giải thích bài toán cho AI nghe để tự mình nhận ra lỗ hổng
 5. **Test adversarial trước khi deploy** — không bao giờ tin boundary mà không test
-
----
-
-> **Xác nhận hoàn thành nhật ký AI:**
-> Họ và tên: ___________________________
-> Ngày: ___________________________
-> Chữ ký: ___________________________
