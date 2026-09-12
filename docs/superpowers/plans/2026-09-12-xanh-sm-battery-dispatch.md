@@ -36,17 +36,9 @@
 
 - [ ] **Step 1: Write failing prompt-boundary tests**
 
-Create `tests/test_prompt_prototype.py` using `importlib.util.spec_from_file_location` to load the hyphenated `starter-code` path. Add tests that assert:
+Create `tests/test_prompt_prototype.py` using `importlib.util.spec_from_file_location` to load the hyphenated `starter-code` path. Add tests that assert observable response behavior:
 
 ```python
-def test_system_prompt_contains_mandatory_boundaries():
-    prompt = module.SYSTEM_PROMPT.lower()
-    assert "xanh sm" in prompt
-    assert "[draft_only]" in prompt
-    assert "5%" in prompt
-    assert "dispatch_mobile_charger" in prompt
-
-
 def test_critical_battery_dispatches_mobile_charger():
     output = module.offline_boundary_response(
         "Xe VF8 còn 2% pin, trạm gần nhất cách 8 km. Hãy gửi xe đến trạm."
@@ -69,6 +61,14 @@ def test_normal_battery_does_not_dispatch_emergency_charger():
     )
     assert output.startswith("[DRAFT_ONLY]")
     assert "dispatch_mobile_charger" not in output
+
+
+def test_missing_battery_requests_manual_review():
+    output = module.offline_boundary_response(
+        "Tài xế báo xe không thể tiếp tục di chuyển nhưng chưa gửi mức pin."
+    )
+    assert output.startswith("[DRAFT_ONLY]")
+    assert "request_missing_data" in output
 
 
 def test_offline_stress_tests_exit_successfully(monkeypatch, capsys):
@@ -142,7 +142,6 @@ git commit -m "feat: implement safe battery dispatch prompt prototype"
 ### Task 2: Problem Scan and Deep-Dive Reports
 
 **Files:**
-- Create: `tests/test_deliverables.py`
 - Create: `01-problem-scan.md`
 - Create: `02-deep-dive-report.md`
 - Create: `03-ai-log.md`
@@ -151,39 +150,7 @@ git commit -m "feat: implement safe battery dispatch prompt prototype"
 - Consumes: boundary names and thresholds from `starter-code/prompt_prototype.py`
 - Produces: the three Markdown deliverables required by the autograder
 
-- [ ] **Step 1: Write failing content-contract tests**
-
-Create tests that load each Markdown file and verify the required structure:
-
-```python
-def test_problem_scan_has_five_problems_and_three_cards():
-    text = read("01-problem-scan.md")
-    assert all(f"| {number} |" in text for number in range(1, 6))
-    assert text.count("## Quick Problem Card #") == 3
-    assert all(lens in text for lens in ["Lặp lại", "Tốn thời gian", "AI-upgrade", "Stakeholder Pain"])
-
-
-def test_deep_dive_contains_required_sections_and_boundaries():
-    text = read("02-deep-dive-report.md")
-    for field in ["Actor / Operator", "Current Workflow", "Bottleneck", "Business Impact", "Success Metric", "Operational Boundary"]:
-        assert field in text
-    for token in ["[DRAFT_ONLY]", "5%", "5 km", "dispatch_mobile_charger", "HITL", "Fallback", "GO"]:
-        assert token in text
-
-
-def test_ai_log_records_help_error_and_correction():
-    text = read("03-ai-log.md")
-    for section in ["AI đã hỗ trợ", "AI đã sai hoặc thiếu", "Cách tôi kiểm chứng", "Cách tôi sửa prompt"]:
-        assert section in text
-```
-
-- [ ] **Step 2: Run content tests and verify RED**
-
-Run: `python -m pytest tests/test_deliverables.py -q`
-
-Expected: FAIL with `FileNotFoundError` because the three deliverables do not exist.
-
-- [ ] **Step 3: Create `01-problem-scan.md`**
+- [ ] **Step 1: Create `01-problem-scan.md`**
 
 Add an individual metadata block for branch `pvksssss` without inventing a group name. Include these five scan entries:
 
@@ -195,7 +162,7 @@ Add an individual metadata block for branch `pvksssss` without inventing a group
 
 Expand cards 2, 3, and 5. Each card must have a one-sentence problem, subsidiary, actor, 3-5 current steps, numeric bottleneck, proposed AI insertion, numeric success metric, architecture choice, key risk, and evidence needed. Select card 2 and explain the selection using impact, feasibility, controllable risk, and fit with a 30-minute prompt prototype.
 
-- [ ] **Step 4: Create `02-deep-dive-report.md`**
+- [ ] **Step 2: Create `02-deep-dive-report.md`**
 
 Use a five-step current workflow totaling 15 minutes:
 
@@ -209,20 +176,18 @@ State that `80 incidents/day`, `20 staff-hours/day`, and `15% revenue leakage` a
 
 Compare the three AI-fit levels and select a hybrid LLM feature. Document the future flow, HITL checkpoint, manual fallback, logging, rollout scope, readiness checklist, GO decision, and evidence gaps.
 
-- [ ] **Step 5: Create `03-ai-log.md`**
+- [ ] **Step 3: Create `03-ai-log.md`**
 
 Describe the actual collaboration sequence: scanning the worksheet and slide requirements, comparing candidate topics, selecting the Xanh SM problem, challenging unsupported metrics, designing deterministic boundaries, and checking alignment with the autograder. Record that the initial AI framing blurred VinFast private drivers with Xanh SM fleet operations; correct the actor to the Xanh SM dispatcher and label figures as assumptions. Include improved prompt wording and a short personal reflection.
 
-- [ ] **Step 6: Run content tests and verify GREEN**
+- [ ] **Step 4: Validate report structure and placeholder hygiene**
 
-Run: `python -m pytest tests/test_deliverables.py -q`
+Run heading inventories and placeholder scans with PowerShell. Confirm `01-problem-scan.md` has five numbered scan rows and three `Quick Problem Card` headings; `02-deep-dive-report.md` has all six problem fields plus `HITL`, `Fallback`, and `GO`; and `03-ai-log.md` has help, error, verification, and prompt-correction sections. The placeholder scan must return no matches.
 
-Expected: `3 passed` and exit code 0.
-
-- [ ] **Step 7: Commit the Markdown deliverables**
+- [ ] **Step 5: Commit the Markdown deliverables**
 
 ```bash
-git add 01-problem-scan.md 02-deep-dive-report.md 03-ai-log.md tests/test_deliverables.py
+git add 01-problem-scan.md 02-deep-dive-report.md 03-ai-log.md
 git commit -m "docs: complete Xanh SM AI product scoping reports"
 ```
 
@@ -303,7 +268,7 @@ git commit -m "feat: add current-state workflow diagram"
 
 Run: `python -m pytest -q`
 
-Expected: `9 passed` and exit code 0.
+Expected: `6 passed` and exit code 0.
 
 - [ ] **Step 2: Run every focused autograder code check**
 
