@@ -121,10 +121,31 @@ def test_conflicting_station_distances_require_manual_review():
     assert payload["requires_human_approval"] is True
 
 
+def test_conflicting_distance_variant_without_repeated_prefix_is_detected():
+    output = module.offline_boundary_response(
+        "Xe VF5 ở GPS X còn 35% pin; hệ thống A báo trạm cách 3 km, nguồn B "
+        "báo 8 km; cổng sạc tương thích và trạm còn chỗ."
+    )
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "manual_dispatcher_review"
+
+
 def test_explicitly_unknown_location_is_not_treated_as_valid():
     output = module.offline_boundary_response(
         "Xe VF5 có vị trí chưa rõ, còn 35% pin; trạm cách 3 km, cổng sạc "
         "tương thích và trạm còn chỗ."
+    )
+    payload = module.parse_draft_payload(output)
+
+    assert payload["action"] == "request_missing_data"
+    assert "location" in payload["missing_fields"]
+
+
+def test_unidentified_location_variant_requests_data():
+    output = module.offline_boundary_response(
+        "Xe VF5 có vị trí không xác định, còn 35% pin; trạm cách 3 km, cổng "
+        "sạc tương thích và trạm còn chỗ."
     )
     payload = module.parse_draft_payload(output)
 

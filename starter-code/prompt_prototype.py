@@ -81,7 +81,7 @@ def _extract_battery_values(user_input: str) -> list[float]:
 
 def _extract_station_distances(user_input: str) -> list[float]:
     matches = re.findall(
-        r"(?:cách|khoảng)\s*(\d+(?:[.,]\d+)?)\s*km",
+        r"\b(\d+(?:[.,]\d+)?)\s*km\b",
         user_input.casefold(),
     )
     return sorted({float(raw.replace(",", ".")) for raw in matches})
@@ -104,10 +104,14 @@ def _missing_context_fields(user_input: str, critical: bool) -> list[str]:
         marker in text
         for marker in (
             "vị trí chưa rõ",
+            "vị trí không xác định",
             "không rõ vị trí",
+            "không xác định vị trí",
             "chưa có vị trí",
             "không có gps",
             "gps chưa rõ",
+            "gps không xác định",
+            "location unknown",
         )
     )
     if not has_location_marker or location_is_unknown:

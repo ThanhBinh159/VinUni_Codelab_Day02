@@ -116,7 +116,7 @@ def evaluate_prompt(user_input: str) -> str:
 
 Run: `python -m pytest tests/test_prompt_prototype.py -q`
 
-Expected after final review hardening: `23 passed` and exit code 0, including Windows console encoding, missing/conflicting context, strict JSON verification, transport fallback, and code-owned online policy tests.
+Expected after final review hardening: `25 passed` and exit code 0, including Windows console encoding, missing/conflicting context variants, strict JSON verification, transport fallback, and code-owned online policy tests.
 
 - [ ] **Step 5: Verify command-line offline execution**
 
@@ -268,7 +268,7 @@ git commit -m "feat: add current-state workflow diagram"
 
 Run: `python -m pytest -q`
 
-Expected after final review hardening: `24 passed` and exit code 0.
+Expected after final review hardening: `26 passed` and exit code 0.
 
 - [ ] **Step 2: Run every focused autograder code check**
 
